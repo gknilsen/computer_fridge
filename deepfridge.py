@@ -1,4 +1,4 @@
-# Python deep fridge frontend 
+# Python deep fridge front-end 
 # Author: Geir K. Nilsen <geir.kjetil.nilsen@gmail.com>
 #
 
@@ -81,11 +81,18 @@ while ((cmd != 'exit') and (cmd != 'quit')):
         print('Motor now off')
     # Incomplete help
     if cmd == 'help':
-        print('quit/exit: leave')
         print('set comp on|off: start/stop compressor')
-        print('get temp: get temperature')
-        print('get hum: get humidity')
-    # Experimental fan monitoring
+        print('get temp: get DHT-11 temperature')
+        print('get hum: get DHT-11 humidity')
+        print('eject in|out: eject the retractable shelf inwards|outwards')
+        print('set light on|off: turn light on/off')
+        print('get fanN: get fan speed in RPM for fan N')
+        print('get cpu_temp: get CPU temperature')
+        print('get gpu_temp: get GPU temperature')
+        print('get cpu_util: get CPU utilization')
+        print('get gpu_util: get GPU utilization')
+        print('quit/exit: leave')
+    # Experimental fan and CPU/GPU monitoring
     if cmd == 'get fan1':
         p1 = subprocess.Popen(('sensors', 'it8665-isa-0290'), stdout=subprocess.PIPE)
         p2 = subprocess.Popen(('grep', 'fan1'), stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -118,5 +125,41 @@ while ((cmd != 'exit') and (cmd != 'quit')):
         p2.stdout.close()
         output = p3.communicate()[0]
         print(output.decode(), end='')
+    if cmd == 'get cpu_temp':
+        p1 = subprocess.Popen(('sensors', 'it8665-isa-0290'), stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(('grep', 'temp1'), stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        p3 = subprocess.Popen(('cut', '-c16-19'), stdin=p2.stdout, stdout=subprocess.PIPE)
+        p2.stdout.close()
+        output = p3.communicate()[0]
+        print(output.decode(), end='')
+        p3.stdout.close()
+    if cmd == 'get gpu_temp':
+        p1 = subprocess.Popen(args=('nvidia-smi', '-q', '-d', 'temperature'), stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(('grep', 'GPU Current'), stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        p3 = subprocess.Popen(('cut', '-c39-40'), stdin=p2.stdout, stdout=subprocess.PIPE)
+        p2.stdout.close()
+        output = p3.communicate()[0]
+        print(output.decode(), end='')
+        p3.stdout.close()
+    if cmd == 'get cpu_util':
+        p1 = subprocess.Popen(args=('mpstat'), stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(('grep', 'all'), stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        p3 = subprocess.Popen(('cut', '-c21-24'), stdin=p2.stdout, stdout=subprocess.PIPE)
+        p2.stdout.close()
+        output = p3.communicate()[0]
+        print(output.decode(), end='')
+        p3.stdout.close()
+    if cmd == 'get gpu_util':
+        p1 = subprocess.Popen(args=('nvidia-smi', '-q', '-d', 'utilization'), stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(('grep', 'Gpu'), stdin=p1.stdout, stdout=subprocess.PIPE)
+        p1.stdout.close()
+        p3 = subprocess.Popen(('cut', '-c39-40'), stdin=p2.stdout, stdout=subprocess.PIPE)
+        p2.stdout.close()
+        output = p3.communicate()[0]
+        print(output.decode(), end='')
+        p3.stdout.close()
 ser.close()
 print('Good bye')
